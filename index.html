@@ -11,7 +11,7 @@
            user-scalable=no"
 >
 
-<title>200S HID LOGGER</title>
+<title>200S HID MAPPER</title>
 
 <style>
 * {
@@ -24,7 +24,7 @@ body {
   margin: 0;
   padding: 0;
   width: 100%;
-  height: 100%;
+  min-height: 100%;
   background: #080808;
   color: #fff;
   font-family: Arial, sans-serif;
@@ -36,13 +36,13 @@ body {
 }
 
 .app {
-  padding: 18px 14px 30px;
   max-width: 600px;
   margin: 0 auto;
+  padding: 18px 14px 30px;
 }
 
 h1 {
-  margin: 0 0 6px;
+  margin: 0 0 5px;
   text-align: center;
   font-size: 22px;
   letter-spacing: 2px;
@@ -51,87 +51,77 @@ h1 {
 .subtitle {
   text-align: center;
   color: #888;
-  font-size: 13px;
-  margin-bottom: 20px;
+  font-size: 12px;
+  margin-bottom: 18px;
 }
 
-.status {
-  padding: 12px;
-  border: 1px solid #333;
-  border-radius: 8px;
+/* 次のターゲット */
+
+.target-box {
+  border: 2px solid #333;
+  border-radius: 12px;
   background: #111;
+  padding: 18px 12px;
+  text-align: center;
   margin-bottom: 12px;
 }
 
-.status-title {
+.target-label {
   color: #888;
   font-size: 12px;
+  margin-bottom: 7px;
+  letter-spacing: 1px;
+}
+
+.target {
+  font-size: 32px;
+  font-weight: bold;
+  min-height: 40px;
+}
+
+.progress {
+  margin-top: 9px;
+  color: #777;
+  font-size: 13px;
+}
+
+/* 最後の入力 */
+
+.last-box {
+  border: 1px solid #333;
+  border-radius: 10px;
+  background: #111;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.last-label {
+  color: #777;
+  font-size: 11px;
   margin-bottom: 5px;
 }
 
-.status-value {
-  font-size: 18px;
+.last-value {
+  font-size: 22px;
   font-weight: bold;
 }
 
-.last {
-  padding: 16px;
-  border: 1px solid #444;
-  border-radius: 10px;
-  background: #151515;
-  margin-bottom: 12px;
-}
-
-.last-title {
-  color: #888;
-  font-size: 12px;
-  margin-bottom: 8px;
-}
-
-.last-key {
-  font-size: 42px;
-  font-weight: bold;
-  text-align: center;
-  word-break: break-all;
-  min-height: 50px;
-}
-
-.data {
-  display: grid;
-  grid-template-columns: 110px 1fr;
-  gap: 1px;
-  background: #333;
-  border: 1px solid #333;
-  border-radius: 8px;
-  overflow: hidden;
-  margin-bottom: 12px;
-}
-
-.data div {
-  padding: 10px;
-  background: #111;
-  word-break: break-all;
-}
-
-.data .label {
-  color: #888;
-  background: #151515;
-}
+/* 操作 */
 
 .controls {
   display: flex;
   gap: 8px;
-  margin-bottom: 15px;
+  margin-bottom: 14px;
 }
 
 button {
   flex: 1;
-  height: 44px;
+  height: 46px;
   border: 1px solid #444;
   border-radius: 8px;
   background: #151515;
   color: #fff;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: bold;
   touch-action: manipulation;
 }
@@ -140,46 +130,111 @@ button:active {
   transform: scale(.97);
 }
 
-.log-title {
+.undo {
+  border-color: #744;
+}
+
+.csv {
+  border-color: #447;
+}
+
+.reset {
+  border-color: #555;
+}
+
+/* 現在の入力詳細 */
+
+.detail {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  gap: 1px;
+  background: #333;
+  border: 1px solid #333;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 15px;
+}
+
+.detail div {
+  padding: 9px;
+  background: #111;
+  word-break: break-all;
+  font-size: 13px;
+}
+
+.detail .label {
+  color: #888;
+  background: #151515;
+}
+
+/* 記録 */
+
+.list-title {
   color: #888;
   font-size: 12px;
   margin-bottom: 6px;
 }
 
-.log {
+.list {
   border: 1px solid #333;
   border-radius: 8px;
   overflow: hidden;
 }
 
-.log-row {
+.row {
   display: grid;
-  grid-template-columns: 45px 1fr 1fr 1fr;
+  grid-template-columns: 35px 1.3fr 1fr 1fr;
   border-bottom: 1px solid #222;
 }
 
-.log-row:last-child {
+.row:last-child {
   border-bottom: 0;
 }
 
-.log-row div {
-  padding: 9px 6px;
+.row div {
+  padding: 8px 5px;
   background: #0f0f0f;
-  font-size: 13px;
+  font-size: 12px;
   word-break: break-all;
 }
 
-.log-header div {
+.header div {
   background: #191919;
   color: #888;
-  font-size: 11px;
+  font-size: 10px;
 }
 
-.empty {
-  padding: 20px;
-  text-align: center;
-  color: #666;
-  background: #0f0f0f;
+.pending {
+  color: #555;
+}
+
+.done {
+  color: #fff;
+}
+
+.complete {
+  border-color: #396;
+  background: #102016;
+}
+
+.complete .target {
+  color: #6f9;
+}
+
+/* スマホ */
+
+@media (max-width: 400px) {
+  .target {
+    font-size: 28px;
+  }
+
+  .row {
+    grid-template-columns: 30px 1.25fr 1fr 1fr;
+  }
+
+  .row div {
+    font-size: 11px;
+  }
 }
 </style>
 </head>
@@ -188,32 +243,69 @@ button:active {
 
 <div class="app">
 
-  <h1>200S HID LOGGER</h1>
+  <h1>200S HID MAPPER</h1>
 
   <div class="subtitle">
-    200Sのキーボード入力を記録します
+    200Sの実機入力を記録します
   </div>
 
-  <div class="status">
-    <div class="status-title">STATUS</div>
-    <div id="status" class="status-value">
-      待機中
+
+  <!-- 次のターゲット -->
+
+  <div id="targetBox" class="target-box">
+
+    <div class="target-label">
+      NEXT TARGET
     </div>
+
+    <div id="target" class="target">
+      読み込み中
+    </div>
+
+    <div id="progress" class="progress">
+      0 / 82
+    </div>
+
   </div>
 
-  <div class="last">
 
-    <div class="last-title">
+  <!-- 最後の入力 -->
+
+  <div class="last-box">
+
+    <div class="last-label">
       LAST INPUT
     </div>
 
-    <div id="lastKey" class="last-key">
+    <div id="lastValue" class="last-value">
       —
     </div>
 
   </div>
 
-  <div class="data">
+
+  <!-- 操作 -->
+
+  <div class="controls">
+
+    <button id="undo" class="undo">
+      1つ戻す
+    </button>
+
+    <button id="csv" class="csv">
+      CSV出力
+    </button>
+
+    <button id="reset" class="reset">
+      最初から
+    </button>
+
+  </div>
+
+
+  <!-- 入力詳細 -->
+
+  <div class="detail">
 
     <div class="label">event.key</div>
     <div id="key">—</div>
@@ -227,58 +319,135 @@ button:active {
     <div class="label">which</div>
     <div id="which">—</div>
 
-    <div class="label">location</div>
-    <div id="location">—</div>
-
-    <div class="label">repeat</div>
-    <div id="repeat">—</div>
-
   </div>
 
-  <div class="controls">
 
-    <button id="clearLog">
-      LOG CLEAR
-    </button>
+  <!-- 記録一覧 -->
 
-    <button id="clearLast">
-      LAST CLEAR
-    </button>
-
+  <div class="list-title">
+    MAPPING
   </div>
 
-  <div class="log-title">
-    RECEIVED INPUT LOG
-  </div>
+  <div class="list">
 
-  <div class="log">
-
-    <div class="log-row log-header">
+    <div class="row header">
       <div>#</div>
-      <div>key</div>
-      <div>code</div>
-      <div>keyCode</div>
+      <div>TARGET</div>
+      <div>KEY</div>
+      <div>CODE</div>
     </div>
 
-    <div id="logBody">
-      <div class="empty">
-        まだ入力はありません
-      </div>
-    </div>
+    <div id="listBody"></div>
 
   </div>
 
 </div>
 
+
 <script>
 
-let count = 0;
+/*
+ * =========================================
+ * 200S HID MAPPER
+ * =========================================
+ */
 
-const statusElement =
-  document.getElementById("status");
 
-const lastKeyElement =
-  document.getElementById("lastKey");
+/*
+ * 測定順序
+ *
+ * 各数字について
+ * 外シングル
+ * 内シングル
+ * ダブル
+ * トリプル
+ *
+ * 最後に
+ * Bull Outer
+ * Bull Inner
+ *
+ * 合計 20 × 4 + 2 = 82
+ */
+
+const targets = [];
+
+for (let number = 1; number <= 20; number++) {
+
+  targets.push({
+    label: `${number} 外シングル`,
+    number: number,
+    area: "Outer Single"
+  });
+
+  targets.push({
+    label: `${number} 内シングル`,
+    number: number,
+    area: "Inner Single"
+  });
+
+  targets.push({
+    label: `${number} ダブル`,
+    number: number,
+    area: "Double"
+  });
+
+  targets.push({
+    label: `${number} トリプル`,
+    number: number,
+    area: "Triple"
+  });
+}
+
+targets.push({
+  label: "Bull 外側",
+  number: "Bull",
+  area: "Outer Bull"
+});
+
+targets.push({
+  label: "Bull 内側",
+  number: "Bull",
+  area: "Inner Bull"
+});
+
+
+/*
+ * 状態
+ */
+
+let currentIndex = 0;
+
+/*
+ * 結果を配列で保存
+ *
+ * results[index] =
+ * {
+ *   target,
+ *   key,
+ *   code,
+ *   keyCode,
+ *   which
+ * }
+ */
+
+let results = [];
+
+
+/*
+ * DOM
+ */
+
+const targetElement =
+  document.getElementById("target");
+
+const progressElement =
+  document.getElementById("progress");
+
+const targetBox =
+  document.getElementById("targetBox");
+
+const lastValueElement =
+  document.getElementById("lastValue");
 
 const keyElement =
   document.getElementById("key");
@@ -292,131 +461,589 @@ const keyCodeElement =
 const whichElement =
   document.getElementById("which");
 
-const locationElement =
-  document.getElementById("location");
-
-const repeatElement =
-  document.getElementById("repeat");
-
-const logBody =
-  document.getElementById("logBody");
+const listBody =
+  document.getElementById("listBody");
 
 
 /*
- * キーボード入力を監視
+ * =========================================
+ * ローカル保存
+ * =========================================
  */
-document.addEventListener("keydown", function(event) {
 
-  count++;
+const STORAGE_KEY =
+  "darts_200s_hid_mapping";
 
-  statusElement.textContent =
-    "INPUT RECEIVED";
 
-  lastKeyElement.textContent =
-    event.key === " "
-      ? "[SPACE]"
-      : event.key;
+function saveData() {
 
-  keyElement.textContent =
-    event.key;
+  localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify({
+      currentIndex,
+      results
+    })
+  );
+}
 
-  codeElement.textContent =
-    event.code;
 
-  keyCodeElement.textContent =
-    event.keyCode;
+function loadData() {
 
-  whichElement.textContent =
-    event.which;
+  const saved =
+    localStorage.getItem(STORAGE_KEY);
 
-  locationElement.textContent =
-    event.location;
+  if (!saved) {
+    return;
+  }
 
-  repeatElement.textContent =
-    event.repeat;
+  try {
+
+    const data =
+      JSON.parse(saved);
+
+    if (
+      Array.isArray(data.results) &&
+      typeof data.currentIndex === "number"
+    ) {
+
+      results =
+        data.results;
+
+      currentIndex =
+        data.currentIndex;
+
+    }
+
+  } catch (error) {
+
+    console.log(
+      "保存データを読み込めませんでした",
+      error
+    );
+
+  }
+}
+
+
+/*
+ * =========================================
+ * 画面更新
+ * =========================================
+ */
+
+function render() {
+
+  /*
+   * 完了
+   */
+
+  if (currentIndex >= targets.length) {
+
+    targetElement.textContent =
+      "測定完了";
+
+    progressElement.textContent =
+      `${targets.length} / ${targets.length}`;
+
+    targetBox.classList.add("complete");
+
+  } else {
+
+    targetElement.textContent =
+      targets[currentIndex].label;
+
+    progressElement.textContent =
+      `${currentIndex} / ${targets.length}`;
+
+    targetBox.classList.remove("complete");
+
+  }
 
 
   /*
-   * ログに追加
+   * 一覧
    */
-  const empty =
-    logBody.querySelector(".empty");
 
-  if (empty) {
-    empty.remove();
+  listBody.innerHTML = "";
+
+  for (
+    let i = 0;
+    i < targets.length;
+    i++
+  ) {
+
+    const target =
+      targets[i];
+
+    const result =
+      results[i];
+
+    const row =
+      document.createElement("div");
+
+    row.className = "row";
+
+    const number =
+      document.createElement("div");
+
+    number.textContent =
+      i + 1;
+
+    const targetCell =
+      document.createElement("div");
+
+    targetCell.textContent =
+      target.label;
+
+    const keyCell =
+      document.createElement("div");
+
+    const codeCell =
+      document.createElement("div");
+
+
+    if (result) {
+
+      keyCell.textContent =
+        result.key;
+
+      codeCell.textContent =
+        result.code;
+
+      keyCell.className =
+        "done";
+
+      codeCell.className =
+        "done";
+
+    } else {
+
+      keyCell.textContent =
+        "—";
+
+      codeCell.textContent =
+        "—";
+
+      keyCell.className =
+        "pending";
+
+      codeCell.className =
+        "pending";
+
+    }
+
+
+    row.appendChild(number);
+    row.appendChild(targetCell);
+    row.appendChild(keyCell);
+    row.appendChild(codeCell);
+
+    listBody.appendChild(row);
   }
-
-  const row =
-    document.createElement("div");
-
-  row.className = "log-row";
-
-  row.innerHTML = `
-    <div>${count}</div>
-    <div>${escapeHtml(event.key)}</div>
-    <div>${escapeHtml(event.code)}</div>
-    <div>${event.keyCode}</div>
-  `;
-
-  logBody.prepend(row);
-
-});
-
-
-/*
- * LOG CLEAR
- */
-document
-  .getElementById("clearLog")
-  .addEventListener("click", function() {
-
-    count = 0;
-
-    logBody.innerHTML = `
-      <div class="empty">
-        まだ入力はありません
-      </div>
-    `;
-
-    statusElement.textContent =
-      "待機中";
-  });
-
-
-/*
- * LAST CLEAR
- */
-document
-  .getElementById("clearLast")
-  .addEventListener("click", function() {
-
-    lastKeyElement.textContent = "—";
-
-    keyElement.textContent = "—";
-    codeElement.textContent = "—";
-    keyCodeElement.textContent = "—";
-    whichElement.textContent = "—";
-    locationElement.textContent = "—";
-    repeatElement.textContent = "—";
-
-    statusElement.textContent =
-      "待機中";
-  });
-
-
-/*
- * HTMLエスケープ
- */
-function escapeHtml(value) {
-
-  return String(value)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-
 }
+
+
+/*
+ * =========================================
+ * 200S入力受信
+ * =========================================
+ */
+
+document.addEventListener(
+  "keydown",
+  function(event) {
+
+    /*
+     * 全部終わっていたら無視
+     */
+
+    if (currentIndex >= targets.length) {
+      return;
+    }
+
+
+    /*
+     * 現在のターゲット
+     */
+
+    const target =
+      targets[currentIndex];
+
+
+    /*
+     * 結果保存
+     */
+
+    results[currentIndex] = {
+
+      target:
+        target.label,
+
+      number:
+        target.number,
+
+      area:
+        target.area,
+
+      key:
+        event.key,
+
+      code:
+        event.code,
+
+      keyCode:
+        event.keyCode,
+
+      which:
+        event.which,
+
+      location:
+        event.location,
+
+      repeat:
+        event.repeat
+
+    };
+
+
+    /*
+     * 最後の入力表示
+     */
+
+    lastValueElement.textContent =
+      `${target.label} → ${event.key} / ${event.code}`;
+
+
+    /*
+     * 詳細表示
+     */
+
+    keyElement.textContent =
+      event.key;
+
+    codeElement.textContent =
+      event.code;
+
+    keyCodeElement.textContent =
+      event.keyCode;
+
+    whichElement.textContent =
+      event.which;
+
+
+    /*
+     * 次へ
+     */
+
+    currentIndex++;
+
+
+    /*
+     * 保存
+     */
+
+    saveData();
+
+
+    /*
+     * 画面更新
+     */
+
+    render();
+
+  },
+  false
+);
+
+
+/*
+ * =========================================
+ * 1つ戻す
+ * =========================================
+ */
+
+document
+  .getElementById("undo")
+  .addEventListener(
+    "click",
+    function() {
+
+      if (currentIndex <= 0) {
+        return;
+      }
+
+
+      /*
+       * 直前の結果を削除
+       */
+
+      currentIndex--;
+
+      results.splice(
+        currentIndex,
+        1
+      );
+
+
+      /*
+       * 最後の入力表示を更新
+       */
+
+      if (currentIndex > 0) {
+
+        const previous =
+          results[currentIndex - 1];
+
+        if (previous) {
+
+          lastValueElement.textContent =
+            `${previous.target} → ${previous.key} / ${previous.code}`;
+
+          keyElement.textContent =
+            previous.key;
+
+          codeElement.textContent =
+            previous.code;
+
+          keyCodeElement.textContent =
+            previous.keyCode;
+
+          whichElement.textContent =
+            previous.which;
+
+        }
+
+      } else {
+
+        lastValueElement.textContent =
+          "—";
+
+        keyElement.textContent =
+          "—";
+
+        codeElement.textContent =
+          "—";
+
+        keyCodeElement.textContent =
+          "—";
+
+        whichElement.textContent =
+          "—";
+
+      }
+
+
+      saveData();
+
+      render();
+
+    }
+  );
+
+
+/*
+ * =========================================
+ * CSV出力
+ * =========================================
+ */
+
+document
+  .getElementById("csv")
+  .addEventListener(
+    "click",
+    function() {
+
+      const header =
+        [
+          "No",
+          "Target",
+          "Number",
+          "Area",
+          "event.key",
+          "event.code",
+          "keyCode",
+          "which",
+          "location",
+          "repeat"
+        ];
+
+
+      const lines = [];
+
+      lines.push(
+        header.join(",")
+      );
+
+
+      for (
+        let i = 0;
+        i < targets.length;
+        i++
+      ) {
+
+        const target =
+          targets[i];
+
+        const result =
+          results[i];
+
+
+        const row = [
+
+          i + 1,
+
+          target.label,
+
+          target.number,
+
+          target.area,
+
+          result
+            ? result.key
+            : "",
+
+          result
+            ? result.code
+            : "",
+
+          result
+            ? result.keyCode
+            : "",
+
+          result
+            ? result.which
+            : "",
+
+          result
+            ? result.location
+            : "",
+
+          result
+            ? result.repeat
+            : ""
+
+        ];
+
+
+        lines.push(
+          row
+            .map(csvEscape)
+            .join(",")
+        );
+      }
+
+
+      const csv =
+        "\uFEFF" +
+        lines.join("\n");
+
+
+      const blob =
+        new Blob(
+          [csv],
+          {
+            type:
+              "text/csv;charset=utf-8;"
+          }
+        );
+
+
+      const url =
+        URL.createObjectURL(blob);
+
+      const link =
+        document.createElement("a");
+
+      link.href =
+        url;
+
+      link.download =
+        "200S-HID-mapping.csv";
+
+      document.body.appendChild(link);
+
+      link.click();
+
+      document.body.removeChild(link);
+
+      URL.revokeObjectURL(url);
+
+    }
+  );
+
+
+function csvEscape(value) {
+
+  const text =
+    String(value ?? "");
+
+  return `"${text.replace(/"/g, '""')}"`;
+}
+
+
+/*
+ * =========================================
+ * 最初から
+ * =========================================
+ */
+
+document
+  .getElementById("reset")
+  .addEventListener(
+    "click",
+    function() {
+
+      const ok =
+        confirm(
+          "測定結果をすべて消して、最初からやり直しますか？"
+        );
+
+      if (!ok) {
+        return;
+      }
+
+
+      currentIndex = 0;
+
+      results = [];
+
+
+      localStorage.removeItem(
+        STORAGE_KEY
+      );
+
+
+      lastValueElement.textContent =
+        "—";
+
+      keyElement.textContent =
+        "—";
+
+      codeElement.textContent =
+        "—";
+
+      keyCodeElement.textContent =
+        "—";
+
+      whichElement.textContent =
+        "—";
+
+
+      render();
+
+    }
+  );
+
+
+/*
+ * =========================================
+ * 起動
+ * =========================================
+ */
+
+loadData();
+
+render();
 
 </script>
 
