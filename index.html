@@ -3,13 +3,11 @@
 <head>
 <meta charset="UTF-8">
 
-<meta
-  name="viewport"
-  content="width=device-width,
-           initial-scale=1,
-           maximum-scale=1,
-           user-scalable=no"
->
+<meta name="viewport"
+      content="width=device-width,
+               initial-scale=1,
+               maximum-scale=1,
+               user-scalable=no">
 
 <title>200S HID MAPPER</title>
 
@@ -19,8 +17,7 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-html,
-body {
+html, body {
   margin: 0;
   padding: 0;
   width: 100%;
@@ -55,8 +52,6 @@ h1 {
   margin-bottom: 18px;
 }
 
-/* 次のターゲット */
-
 .target-box {
   border: 2px solid #333;
   border-radius: 12px;
@@ -85,8 +80,6 @@ h1 {
   font-size: 13px;
 }
 
-/* 最後の入力 */
-
 .last-box {
   border: 1px solid #333;
   border-radius: 10px;
@@ -102,11 +95,10 @@ h1 {
 }
 
 .last-value {
-  font-size: 22px;
+  font-size: 20px;
   font-weight: bold;
+  word-break: break-word;
 }
-
-/* 操作 */
 
 .controls {
   display: flex;
@@ -142,8 +134,6 @@ button:active {
   border-color: #555;
 }
 
-/* 現在の入力詳細 */
-
 .detail {
   display: grid;
   grid-template-columns: 110px 1fr;
@@ -167,8 +157,6 @@ button:active {
   background: #151515;
 }
 
-/* 記録 */
-
 .list-title {
   color: #888;
   font-size: 12px;
@@ -183,7 +171,7 @@ button:active {
 
 .row {
   display: grid;
-  grid-template-columns: 35px 1.3fr 1fr 1fr;
+  grid-template-columns: 35px 1.3fr 1.2fr 1fr;
   border-bottom: 1px solid #222;
 }
 
@@ -208,10 +196,6 @@ button:active {
   color: #555;
 }
 
-.done {
-  color: #fff;
-}
-
 .complete {
   border-color: #396;
   background: #102016;
@@ -221,15 +205,9 @@ button:active {
   color: #6f9;
 }
 
-/* スマホ */
-
 @media (max-width: 400px) {
   .target {
     font-size: 28px;
-  }
-
-  .row {
-    grid-template-columns: 30px 1.25fr 1fr 1fr;
   }
 
   .row div {
@@ -246,11 +224,8 @@ button:active {
   <h1>200S HID MAPPER</h1>
 
   <div class="subtitle">
-    200Sの実機入力を記録します
+    200Sの実機入力を1投単位で記録します
   </div>
-
-
-  <!-- 次のターゲット -->
 
   <div id="targetBox" class="target-box">
 
@@ -268,13 +243,10 @@ button:active {
 
   </div>
 
-
-  <!-- 最後の入力 -->
-
   <div class="last-box">
 
     <div class="last-label">
-      LAST INPUT
+      LAST THROW
     </div>
 
     <div id="lastValue" class="last-value">
@@ -282,9 +254,6 @@ button:active {
     </div>
 
   </div>
-
-
-  <!-- 操作 -->
 
   <div class="controls">
 
@@ -302,27 +271,21 @@ button:active {
 
   </div>
 
-
-  <!-- 入力詳細 -->
-
   <div class="detail">
 
-    <div class="label">event.key</div>
-    <div id="key">—</div>
+    <div class="label">INPUTS</div>
+    <div id="inputs">—</div>
 
-    <div class="label">event.code</div>
-    <div id="code">—</div>
+    <div class="label">KEYS</div>
+    <div id="keys">—</div>
 
-    <div class="label">keyCode</div>
-    <div id="keyCode">—</div>
+    <div class="label">CODES</div>
+    <div id="codes">—</div>
 
-    <div class="label">which</div>
-    <div id="which">—</div>
+    <div class="label">KEYCODES</div>
+    <div id="keyCodes">—</div>
 
   </div>
-
-
-  <!-- 記録一覧 -->
 
   <div class="list-title">
     MAPPING
@@ -343,30 +306,45 @@ button:active {
 
 </div>
 
-
 <script>
 
 /*
- * =========================================
+ * ==========================================
  * 200S HID MAPPER
- * =========================================
+ * ==========================================
+ *
+ * 1投で複数のkeydownが発生する場合があるため、
+ * 短時間に連続して届いたkeydownを
+ * 「1投分の入力セット」としてまとめる。
+ *
+ * 例：
+ *
+ * Shift
+ * W
+ *
+ * ↓
+ *
+ * 1W = Shift + W
  */
 
 
 /*
- * 測定順序
+ * 1投の入力をまとめる待ち時間
  *
- * 各数字について
- * 外シングル
- * 内シングル
- * ダブル
- * トリプル
+ * 200ms以内に次の入力が来たら
+ * 同じ投球として扱う。
+ */
+
+const GROUP_DELAY = 200;
+
+
+/*
+ * 測定順
  *
- * 最後に
- * Bull Outer
- * Bull Inner
+ * 20数字 × 4種類
+ * + Bull 2種類
  *
- * 合計 20 × 4 + 2 = 82
+ * 合計82
  */
 
 const targets = [];
@@ -417,20 +395,24 @@ targets.push({
 
 let currentIndex = 0;
 
+let results = [];
+
+
 /*
- * 結果を配列で保存
- *
- * results[index] =
- * {
- *   target,
- *   key,
- *   code,
- *   keyCode,
- *   which
- * }
+ * 現在の投球で受信中の入力
  */
 
-let results = [];
+let pendingInputs = [];
+
+let groupTimer = null;
+
+
+/*
+ * 保存
+ */
+
+const STORAGE_KEY =
+  "darts_200s_hid_mapping_v2";
 
 
 /*
@@ -449,31 +431,27 @@ const targetBox =
 const lastValueElement =
   document.getElementById("lastValue");
 
-const keyElement =
-  document.getElementById("key");
+const inputsElement =
+  document.getElementById("inputs");
 
-const codeElement =
-  document.getElementById("code");
+const keysElement =
+  document.getElementById("keys");
 
-const keyCodeElement =
-  document.getElementById("keyCode");
+const codesElement =
+  document.getElementById("codes");
 
-const whichElement =
-  document.getElementById("which");
+const keyCodesElement =
+  document.getElementById("keyCodes");
 
 const listBody =
   document.getElementById("listBody");
 
 
 /*
- * =========================================
- * ローカル保存
- * =========================================
+ * ==========================================
+ * 保存
+ * ==========================================
  */
-
-const STORAGE_KEY =
-  "darts_200s_hid_mapping";
-
 
 function saveData() {
 
@@ -520,22 +498,17 @@ function loadData() {
       "保存データを読み込めませんでした",
       error
     );
-
   }
 }
 
 
 /*
- * =========================================
+ * ==========================================
  * 画面更新
- * =========================================
+ * ==========================================
  */
 
 function render() {
-
-  /*
-   * 完了
-   */
 
   if (currentIndex >= targets.length) {
 
@@ -556,12 +529,11 @@ function render() {
       `${currentIndex} / ${targets.length}`;
 
     targetBox.classList.remove("complete");
-
   }
 
 
   /*
-   * 一覧
+   * MAPPING
    */
 
   listBody.innerHTML = "";
@@ -581,7 +553,9 @@ function render() {
     const row =
       document.createElement("div");
 
-    row.className = "row";
+    row.className =
+      "row";
+
 
     const number =
       document.createElement("div");
@@ -589,11 +563,13 @@ function render() {
     number.textContent =
       i + 1;
 
+
     const targetCell =
       document.createElement("div");
 
     targetCell.textContent =
       target.label;
+
 
     const keyCell =
       document.createElement("div");
@@ -605,16 +581,10 @@ function render() {
     if (result) {
 
       keyCell.textContent =
-        result.key;
+        result.keys.join(" + ");
 
       codeCell.textContent =
-        result.code;
-
-      keyCell.className =
-        "done";
-
-      codeCell.className =
-        "done";
+        result.codes.join(" + ");
 
     } else {
 
@@ -629,7 +599,6 @@ function render() {
 
       codeCell.className =
         "pending";
-
     }
 
 
@@ -644,9 +613,127 @@ function render() {
 
 
 /*
- * =========================================
- * 200S入力受信
- * =========================================
+ * ==========================================
+ * 1投分の入力を確定
+ * ==========================================
+ */
+
+function finalizeThrow() {
+
+  if (
+    pendingInputs.length === 0
+  ) {
+    return;
+  }
+
+
+  if (
+    currentIndex >= targets.length
+  ) {
+    pendingInputs = [];
+    return;
+  }
+
+
+  const target =
+    targets[currentIndex];
+
+
+  /*
+   * 1投分として保存
+   */
+
+  results[currentIndex] = {
+
+    target:
+      target.label,
+
+    number:
+      target.number,
+
+    area:
+      target.area,
+
+    inputs:
+      pendingInputs.map(input => ({
+        key: input.key,
+        code: input.code,
+        keyCode: input.keyCode,
+        which: input.which,
+        location: input.location,
+        repeat: input.repeat
+      })),
+
+    keys:
+      pendingInputs.map(
+        input => input.key
+      ),
+
+    codes:
+      pendingInputs.map(
+        input => input.code
+      ),
+
+    keyCodes:
+      pendingInputs.map(
+        input => input.keyCode
+      )
+  };
+
+
+  /*
+   * 表示
+   */
+
+  lastValueElement.textContent =
+    `${target.label} → ` +
+    pendingInputs
+      .map(input => input.key)
+      .join(" + ");
+
+
+  inputsElement.textContent =
+    pendingInputs.length;
+
+  keysElement.textContent =
+    pendingInputs
+      .map(input => input.key)
+      .join(" + ");
+
+  codesElement.textContent =
+    pendingInputs
+      .map(input => input.code)
+      .join(" + ");
+
+  keyCodesElement.textContent =
+    pendingInputs
+      .map(input => input.keyCode)
+      .join(" + ");
+
+
+  /*
+   * 次のターゲットへ
+   */
+
+  currentIndex++;
+
+  pendingInputs = [];
+
+
+  /*
+   * 保存
+   */
+
+  saveData();
+
+  render();
+}
+
+
+/*
+ * ==========================================
+ * キーボード入力
+ * ==========================================
  */
 
 document.addEventListener(
@@ -654,36 +741,21 @@ document.addEventListener(
   function(event) {
 
     /*
-     * 全部終わっていたら無視
+     * 測定完了後は無視
      */
 
-    if (currentIndex >= targets.length) {
+    if (
+      currentIndex >= targets.length
+    ) {
       return;
     }
 
 
     /*
-     * 現在のターゲット
+     * 受信した入力を一旦保留
      */
 
-    const target =
-      targets[currentIndex];
-
-
-    /*
-     * 結果保存
-     */
-
-    results[currentIndex] = {
-
-      target:
-        target.label,
-
-      number:
-        target.number,
-
-      area:
-        target.area,
+    pendingInputs.push({
 
       key:
         event.key,
@@ -703,53 +775,26 @@ document.addEventListener(
       repeat:
         event.repeat
 
-    };
+    });
 
 
     /*
-     * 最後の入力表示
+     * 前のタイマーを解除
      */
 
-    lastValueElement.textContent =
-      `${target.label} → ${event.key} / ${event.code}`;
+    clearTimeout(groupTimer);
 
 
     /*
-     * 詳細表示
+     * 200ms入力が来なければ
+     * 1投として確定
      */
 
-    keyElement.textContent =
-      event.key;
-
-    codeElement.textContent =
-      event.code;
-
-    keyCodeElement.textContent =
-      event.keyCode;
-
-    whichElement.textContent =
-      event.which;
-
-
-    /*
-     * 次へ
-     */
-
-    currentIndex++;
-
-
-    /*
-     * 保存
-     */
-
-    saveData();
-
-
-    /*
-     * 画面更新
-     */
-
-    render();
+    groupTimer =
+      setTimeout(
+        finalizeThrow,
+        GROUP_DELAY
+      );
 
   },
   false
@@ -757,9 +802,9 @@ document.addEventListener(
 
 
 /*
- * =========================================
+ * ==========================================
  * 1つ戻す
- * =========================================
+ * ==========================================
  */
 
 document
@@ -768,13 +813,34 @@ document
     "click",
     function() {
 
+      /*
+       * まだ入力をまとめている途中なら
+       * まずそれを破棄
+       */
+
+      if (
+        pendingInputs.length > 0
+      ) {
+
+        clearTimeout(groupTimer);
+
+        pendingInputs = [];
+
+        return;
+      }
+
+
+      /*
+       * 最初なら何もしない
+       */
+
       if (currentIndex <= 0) {
         return;
       }
 
 
       /*
-       * 直前の結果を削除
+       * 直前の投球を削除
        */
 
       currentIndex--;
@@ -786,7 +852,7 @@ document
 
 
       /*
-       * 最後の入力表示を更新
+       * 直前の結果を表示
        */
 
       if (currentIndex > 0) {
@@ -797,20 +863,20 @@ document
         if (previous) {
 
           lastValueElement.textContent =
-            `${previous.target} → ${previous.key} / ${previous.code}`;
+            `${previous.target} → ` +
+            previous.keys.join(" + ");
 
-          keyElement.textContent =
-            previous.key;
+          inputsElement.textContent =
+            previous.inputs.length;
 
-          codeElement.textContent =
-            previous.code;
+          keysElement.textContent =
+            previous.keys.join(" + ");
 
-          keyCodeElement.textContent =
-            previous.keyCode;
+          codesElement.textContent =
+            previous.codes.join(" + ");
 
-          whichElement.textContent =
-            previous.which;
-
+          keyCodesElement.textContent =
+            previous.keyCodes.join(" + ");
         }
 
       } else {
@@ -818,18 +884,17 @@ document
         lastValueElement.textContent =
           "—";
 
-        keyElement.textContent =
+        inputsElement.textContent =
           "—";
 
-        codeElement.textContent =
+        keysElement.textContent =
           "—";
 
-        keyCodeElement.textContent =
+        codesElement.textContent =
           "—";
 
-        whichElement.textContent =
+        keyCodesElement.textContent =
           "—";
-
       }
 
 
@@ -842,9 +907,9 @@ document
 
 
 /*
- * =========================================
+ * ==========================================
  * CSV出力
- * =========================================
+ * ==========================================
  */
 
 document
@@ -853,19 +918,18 @@ document
     "click",
     function() {
 
-      const header =
-        [
-          "No",
-          "Target",
-          "Number",
-          "Area",
-          "event.key",
-          "event.code",
-          "keyCode",
-          "which",
-          "location",
-          "repeat"
-        ];
+      const header = [
+
+        "No",
+        "Target",
+        "Number",
+        "Area",
+        "Input Count",
+        "Keys",
+        "Codes",
+        "KeyCodes"
+
+      ];
 
 
       const lines = [];
@@ -899,27 +963,19 @@ document
           target.area,
 
           result
-            ? result.key
+            ? result.inputs.length
             : "",
 
           result
-            ? result.code
+            ? result.keys.join(" + ")
             : "",
 
           result
-            ? result.keyCode
+            ? result.codes.join(" + ")
             : "",
 
           result
-            ? result.which
-            : "",
-
-          result
-            ? result.location
-            : "",
-
-          result
-            ? result.repeat
+            ? result.keyCodes.join(" + ")
             : ""
 
         ];
@@ -967,7 +1023,6 @@ document
       document.body.removeChild(link);
 
       URL.revokeObjectURL(url);
-
     }
   );
 
@@ -982,9 +1037,9 @@ function csvEscape(value) {
 
 
 /*
- * =========================================
+ * ==========================================
  * 最初から
- * =========================================
+ * ==========================================
  */
 
 document
@@ -1003,6 +1058,10 @@ document
       }
 
 
+      clearTimeout(groupTimer);
+
+      pendingInputs = [];
+
       currentIndex = 0;
 
       results = [];
@@ -1016,16 +1075,16 @@ document
       lastValueElement.textContent =
         "—";
 
-      keyElement.textContent =
+      inputsElement.textContent =
         "—";
 
-      codeElement.textContent =
+      keysElement.textContent =
         "—";
 
-      keyCodeElement.textContent =
+      codesElement.textContent =
         "—";
 
-      whichElement.textContent =
+      keyCodesElement.textContent =
         "—";
 
 
@@ -1036,9 +1095,9 @@ document
 
 
 /*
- * =========================================
+ * ==========================================
  * 起動
- * =========================================
+ * ==========================================
  */
 
 loadData();
